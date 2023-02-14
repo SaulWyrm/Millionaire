@@ -1,15 +1,19 @@
 package com.example.millionaire
 
+import android.content.DialogInterface
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import kotlinx.android.synthetic.main.activity_main.* // импортируем библиотеку KoltinX со сгенерированными определениями ресурсов (2ой способ; устаревший)
+import kotlinx.android.synthetic.main.activity_winner.*
 import org.w3c.dom.Text
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), View.OnClickListener {
 
 
     //так как переменные создаются на этапе открытия проги, нам нужна поздняя инициализация виджетов
@@ -21,6 +25,8 @@ class MainActivity : AppCompatActivity() {
 
     private val rounds = mutableListOf<Round>()
     private var currentRound = 0
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -38,8 +44,36 @@ class MainActivity : AppCompatActivity() {
 //---
         fillRounds()
         updateUI()
-    }
 
+
+
+
+        // привязка обработчика к элементу через слушателя
+        /*button1.setOnClickListener {
+            processRound(1)
+        }*/
+
+        button1.setOnClickListener(this)
+        button2.setOnClickListener(this)
+        button3.setOnClickListener(this)
+        button4.setOnClickListener(this)
+
+
+
+    }
+    // переопредление метода onClick для всего класса MainActivity, проверяет по id виджетов
+    override fun onClick(v: View?) {
+        v?.let {
+            when (it.id) {
+                R.id.button1 -> processRound(1)
+                R.id.button2 -> processRound(2)
+                R.id.button3 -> processRound(3)
+                R.id.button4 -> processRound(4)
+                else -> return
+
+            }
+        }
+    }
     // заполняет банк вопросов данными
     private fun fillRounds() {
 
@@ -84,18 +118,22 @@ class MainActivity : AppCompatActivity() {
     private fun processRound(givenId: Int) {
         if (checkAnswer(givenId)) {
             if (!goNextRound()) {
-                Toast.makeText(this, getString(R.string.wintext), Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, WinnerActivity::class.java)
+                intent.putExtra("cash", rounds[currentRound].value)
+                startActivity(intent)
                 finish()
             }
-            Toast.makeText(this, "хорошая работа", Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(this, getString(R.string.losetext), Toast.LENGTH_SHORT).show()
+            // высплывающее сообщение и выход из приложения
+            /*Toast.makeText(this, getString(R.string.losetext), Toast.LENGTH_SHORT).show()
+            finish()*/
 
-            finish()
+            askForRestart()
         }
     }
 
-    fun buttonClick(view: View) {
+    // привязка события к элементам через xml теги
+    /*fun buttonClick(view: View) {
         try {
             val id = view.tag.toString().toInt()
             processRound(id)
@@ -103,6 +141,20 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         }
     }
+     */
 
-
+    private fun askForRestart() = AlertDialog.Builder(this).run {
+            setTitle(R.string.losetext)
+            setMessage(R.string.replay_message)
+            setNegativeButton(android.R.string.cancel) { _, _ ->
+                finish()
+            }
+            setPositiveButton(android.R.string.ok) { _, _ ->
+                currentRound = 0
+                updateUI()
+            }
+            // не дадим пользователю нажать на выход и продолжить решать тест
+            setCancelable(false)
+            create()
+        }.show()
 }

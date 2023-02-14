@@ -4,4 +4,5 @@
     <string name="startvalue">0</string>
     <string name="wintext">Ты ПОБЕДИЛ! :)</string>
     <string name="losetext">Ты ПРОИГРАЛ :(</string>
+    <string name="replay_message">Попробуем еще раз?</string>
 </resources>
